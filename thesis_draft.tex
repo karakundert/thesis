@@ -66,7 +66,13 @@ offsets, followed by offsets in the aperture illumination.
 \section{Introduction}
 
 Systematic errors in instrumentation and digital data pipelines are some of the 
-greatest obstacles that astronomers face in the modern field. 
+greatest obstacles that astronomers face in the modern field. As the technology 
+used to create the digital backends of observatories continues to see 
+incredible rates of progress, new sources of systematic errors are beginning to 
+make their way above the ever falling noise floor. These newly unearthed 
+sources of error have yet to be characterized and thoroughly understood, making 
+them an especially treacherous threat for the astronomers using the 
+observatories.
 
 Though there are many factors contributing to each image, one that remains 
 relatively unexplored is that of how the primary beam affects both the data 
@@ -140,70 +146,16 @@ in the u-v place. Each antenna is equipped with receivers to observe at bands
 
 This project aims to model a realistic array, with as many of the known 
 problems of the ALMA primary beam as we know how to replicate computationally.  
-As such, the simulation does the calculations shown in Eqs.~\ref{eq:vis, eq:im} 
-for a set of mutually unique aperture models over a series of time steps. As 
-time progresses in the simulation, so does the relative geometry of the array 
-to the celestial sphere.
-This set of arrays is used to produce a set of primary beams for each baseline 
-being modeled, which is in turn used to correct some test image. We can compare 
-the known true image to the corrected image generated through the simulation, 
-as well as compare the results of the simulation to that of standard image 
-correction methods.
+As such, the simulation does the calculations shown in~\eqref{eq:vis} 
+and~\eqref{eq:im} for a set of mutually unique aperture models over a series of 
+time steps. As time progresses in the simulation, so does the relative geometry 
+of the array to the celestial sphere.
 
-
-
-Future testing hopes to investigate the benefits of A-projection in image 
-correction.
-A-projection uses a model of the aperture in the initial steps of imaging and 
-deconvolution in order to remove its effects from the final image. The idea 
-goes that the baseline apertures $A$ have contributed various effects into the 
-visibilities as they are observed, as described in Equation~\ref{eq:vis}. In 
-order to remove those effects, the observed visibilities must be convolved with 
-the inverse of the baseline aperture function $A^{-1}$, as seen in 
-Equation~\ref{eq:a-proj}. The baseline aperture and its inverse will then form 
-a unity matrix, returning the true visibilities, which can be Fourier 
-transformed into the true image.
-
-\begin{equation}
-    \label{eq:a-proj}
-    V_{true} = A^{-1} * V_{obs}
-\end{equation}
-\begin{equation}
-    \label{eq:a-inv}
-    A^{-1} = \frac{A^{\dagger}}{AA^{\dagger}}
-\end{equation}
-
-This process takes place during the regridding of the visibilities, so that 
-$A^{-1}$ replaces the weighting function that evenly samples the u-v plane.  
-However, $AA^{\dagger}$ may contain zero valued components. As such, division 
-by $AA{\dagger}$ is an extremely dangerous computation to make, as it has the 
-potential to fill the u-v plane with divide-by-zero errors and create an 
-entirely erroneous image. Instead, the Fourier transform relationship between 
-the aperture and the primary beam is used to rewrite Equations~\ref{eq:a-proj} 
-and \ref{eq:a-inv} as
-
-\begin{equation}
-    \label{eq:a-proj-cor}
-    V_{true} = A^{\dagger} * V_{obs}
-\end{equation}
-\begin{equation}
-    \label{eq:imcor}
-    PB^2 \overset{\mathcal{F}}{\rightleftharpoons} AA^{\dagger}
-\end{equation}
-
-$PB^2$ is then factored out of the final image, minimizing the divide-by-zero 
-errors while maintaining the integrity of the A-projection relationship. This 
-method allows for a great deal of instrumental image correction prior to 
-actually entering the image domain, assuming an accurate model of the aperture 
-functions $A$ is used.
-
-\section{Method}
-
-The simulation itself is simple in concept.  A numerical interferometer is 
-constructed by generating a set of apertures in an array.  The shape and 
+The simulation itself is simple in concept. A numerical interferometer is 
+constructed by generating a set of apertures in an array. The shape and 
 placement of the array are fed into the simulation. Consideration must be given 
 to matching the geometry of the array with the size of the images desired and 
-the size of a pixel, such that Nyquist sampling is achieved.  The simulation is 
+the size of a pixel, such that Nyquist sampling is achieved. The simulation is 
 designed to be a test of the capabilities of ALMA in Cycle 2 of its early 
 science testing. Therefore, the unperturbed numerical interferometer which acts 
 as the control case of the simulation has 34 identical apertures, taking data 
@@ -305,6 +257,51 @@ primary beam. The large extended source was centered.
     }
     \label{fig:psf}
 \end{figure}
+
+Future testing hopes to investigate the benefits of A-projection in image 
+correction.
+A-projection uses a model of the aperture in the initial steps of imaging and 
+deconvolution in order to remove its effects from the final image. The idea 
+goes that the baseline apertures $A$ have contributed various effects into the 
+visibilities as they are observed, as described in~\eqref{eq:vis}. In order to 
+remove those effects, the observed visibilities must be convolved with the 
+inverse of the baseline aperture function $A^{-1}$, as seen 
+in~\eqref{eq:a-proj}. The baseline aperture and its inverse will then form a 
+unity matrix, returning the true visibilities, which can be Fourier transformed 
+into the true image.
+
+\begin{equation}
+    \label{eq:a-proj}
+    V_{true} = A^{-1} * V_{obs}
+\end{equation}
+\begin{equation}
+    \label{eq:a-inv}
+    A^{-1} = \frac{A^{\dagger}}{AA^{\dagger}}
+\end{equation}
+
+This process takes place during the regridding of the visibilities, so that 
+$A^{-1}$ replaces the weighting function that evenly samples the u-v plane.  
+However, $AA^{\dagger}$ may contain zero valued components. As such, division 
+by $AA{\dagger}$ is an extremely dangerous computation to make, as it has the 
+potential to fill the u-v plane with divide-by-zero errors and create an 
+entirely erroneous image. Instead, the Fourier transform relationship between 
+the aperture and the primary beam is used to rewrite~\eqref{eq:a-proj} and 
+\eqref{eq:a-inv} as
+
+\begin{equation}
+    \label{eq:a-proj-cor}
+    V_{true} = A^{\dagger} * V_{obs}
+\end{equation}
+\begin{equation}
+    \label{eq:imcor}
+    PB^2 \overset{\mathcal{F}}{\rightleftharpoons} AA^{\dagger}
+\end{equation}
+
+$PB^2$ is then factored out of the final image, minimizing the divide-by-zero 
+errors while maintaining the integrity of the A-projection relationship. This 
+method allows for a great deal of instrumental image correction prior to 
+actually entering the image domain, assuming an accurate model of the aperture 
+functions $A$ is used.
 
 \section{Results}
 
